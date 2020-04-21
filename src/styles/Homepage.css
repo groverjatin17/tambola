@@ -1,0 +1,32 @@
+.topContainer {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
+}
+
+.topContainer > p {
+    font-size: 40px;
+    text-align: center;
+}
+
+.appContainerStyle{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.childContainer{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+    width: 25%;
+    height: 200px;
+    border: 2px solid blue
+};
+
+.childElement{
+    border: 1px solid red;
+    width: 95%;
+    text-align: center;
+}

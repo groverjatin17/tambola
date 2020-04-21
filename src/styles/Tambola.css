@@ -1,0 +1,56 @@
+.master-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.primary-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.tambola-board-container {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+.container {
+    border: 1px solid;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+
+.spanStyle {
+    border: 1px solid;
+    width: 10%;
+    height: 30px;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.green {
+    background-color: green;
+}
+.childElement  {
+    border: 1px solid red;
+    width: 95%;
+    text-align: center;
+}
+
+.childContainer  {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+    width: 25%;
+    height: 200px;
+    border: 2px solid blue;
+};
+
