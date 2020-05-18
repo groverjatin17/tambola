@@ -1,25 +1,24 @@
-import React, { Component } from "react";
-import { Howl } from "howler";
+import React, { Component } from 'react';
+import { Howl } from 'howler';
 
-import "../styles/Tambola.css";
+import '../styles/Tambola.css';
+import TambolaBoard from './TambolaBoard';
 
 const tambolaNumbersOrigin = Array.from({ length: 90 }, (x, i) => i + 1);
-const RenderRadioInput = ({ name, value, callingDuration, callback }) => {
-  return (
-    <>
-      <input
-        type="radio"
-        name={name}
-        value={value}
-        checked={callingDuration === Number(value)}
-        onChange={(e) => {
-          callback(e.target.value);
-        }}
-      />
-      <label htmlFor={name}>{name}</label>
-    </>
-  );
-};
+const RenderRadioInput = ({ name, value, callingDuration, callback }) => (
+  <>
+    <input
+      type="radio"
+      name={name}
+      value={value}
+      checked={callingDuration === Number(value)}
+      onChange={(e) => {
+        callback(e.target.value);
+      }}
+    />
+    <label htmlFor={name}>{name}</label>
+  </>
+);
 
 export default class Tambola extends Component {
   constructor(props) {
@@ -27,17 +26,40 @@ export default class Tambola extends Component {
     this.state = {
       tambolaNumbers: Array.from({ length: 90 }, (x, i) => i + 1),
       callingDuration: 2000,
+      disableStarter: false,
     };
-    this.randomNumber = "start";
+    this.randomNumber = 'start';
   }
 
-  componentWillUnmount =() => {
-    clearInterval(this.myInterval);
-    
+  componentDidMount() {
+    this.postTambolaNumbers();
   }
+
+  componentWillUnmount = () => {
+    clearInterval(this.myInterval);
+  };
+
+  postTambolaNumbers = () => {
+    const { tambolaNumbers } = this.state;
+    const {
+      match: {
+        params: { gameNumber },
+      },
+    } = this.props;
+    fetch('http://localhost:8080/tambola/number', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gameId: gameNumber,
+        tambolaNumbers: tambolaNumbers.join(),
+      }),
+    }).then((response) => response.json());
+  };
+
   generateRandomNumber = () => {
-    if (this.state.tambolaNumbers.length > 0) {
-      const tempTambolaNumbers = [...this.state.tambolaNumbers];
+    const { tambolaNumbers } = this.state;
+    if (tambolaNumbers.length > 0) {
+      const tempTambolaNumbers = [...tambolaNumbers];
       const randomNum =
         tempTambolaNumbers[
           Math.floor(Math.random() * tempTambolaNumbers.length)
@@ -45,8 +67,11 @@ export default class Tambola extends Component {
       this.randomNumber = randomNum;
       const index = tempTambolaNumbers.findIndex((item) => item === randomNum);
       tempTambolaNumbers.splice(index, 1);
-      this.setState({ tambolaNumbers: tempTambolaNumbers });
-      let sound = new Howl({
+      this.setState(
+        { tambolaNumbers: tempTambolaNumbers },
+        this.postTambolaNumbers
+      );
+      const sound = new Howl({
         src: require(`../assets/audio/${randomNum}.wav`),
       });
       sound.play();
@@ -56,50 +81,62 @@ export default class Tambola extends Component {
   };
 
   start = () => {
+    const { callingDuration } = this.state;
+    this.setState((prevState) => ({
+      disableStarter: !prevState.disableStarter,
+    }));
     this.myInterval = setInterval(
       () => this.generateRandomNumber(),
-      this.state.callingDuration
+      callingDuration
     );
   };
 
+  pause = () => {
+    clearInterval(this.myInterval);
+    this.myInterval = null;
+    this.setState((prevState) => ({
+      disableStarter: !prevState.disableStarter,
+    }));
+  }
   changeDuration = (duration) => {
     clearInterval(this.myInterval);
-    this.setState({ callingDuration: Number(duration) }, () => (this.myInterval && this.start()));
+    this.setState(
+      { callingDuration: Number(duration) },
+      () => this.myInterval && this.start()
+    );
   };
 
   render() {
-    const { callingDuration } = this.state;
-    const { challenges } = this.props.location.state;
+    const { callingDuration, tambolaNumbers, disableStarter } = this.state;
+    const { location } = this.props;
+    const { challenges } = location.state;
+
     return (
       <div className="master-container">
-        <p style={{ fontSize: "50px" }}>{this.randomNumber}</p>
-
+        <p style={{ fontSize: '50px' }}>{this.randomNumber}</p>
         <div className="primary-container">
           <div className="childContainer">
             {challenges.length > 0 &&
               challenges.map((challenge) => (
-                <span key={challenge} className="childElement">{challenge}</span>
+                <span key={challenge} className="childElement">
+                  {challenge}
+                </span>
               ))}
           </div>
           <div className="tambola-board-container">
-            <div className="container">
-              {tambolaNumbersOrigin.map((number) => (
-                <span
-                  key={number}
-                  className={
-                    this.state.tambolaNumbers.includes(number)
-                      ? "spanStyle green"
-                      : "spanStyle"
-                  }
-                >
-                  {number}
-                </span>
-              ))}
-            </div>
+            <TambolaBoard
+              tambolaNumbersOrigin={tambolaNumbersOrigin}
+              tambolaNumbers={tambolaNumbers}
+            />
             <span>
-              <button onClick={this.start}>Get</button>
-              <button onClick={() => {clearInterval(this.myInterval); this.myInterval= null;}
-              }>
+              <button
+                type="button"
+                disabled={disableStarter}
+                onClick={this.start}
+              >
+                Start
+              </button>
+              <button type="button" onClick={this.pause}>
                 Pause
               </button>
             </span>
