@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { Howl } from 'howler';
 
 import '../styles/Tambola.css';
@@ -97,7 +98,8 @@ export default class Tambola extends Component {
     this.setState((prevState) => ({
       disableStarter: !prevState.disableStarter,
     }));
-  }
+  };
+
   changeDuration = (duration) => {
     clearInterval(this.myInterval);
     this.setState(
@@ -109,7 +111,10 @@ export default class Tambola extends Component {
   render() {
     const { callingDuration, tambolaNumbers, disableStarter } = this.state;
     const { location } = this.props;
-    const { challenges } = location.state;
+    const { challenges } = location.state || {
+      challenges: ['Early 7', 'Corner', 'All Lines', 'House', 'Bamboo'],
+    };
+    console.log('Tambola -> render -> challenges', challenges);
 
     return (
       <div className="master-container">
