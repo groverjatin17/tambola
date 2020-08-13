@@ -1,15 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Redirect } from 'react-router-dom';
+import Modal from '@material-ui/core/Modal';
+import Card from '@material-ui/core/Card';
+import { StoreContext } from '../AppReducer';
+
 import '../styles/Homepage.css';
+import {
+  createUserProfileDocument,
+  signInWithGoogle,
+  auth,
+} from '../firebase/firebase.utils';
 
 const initialValue = ['Early 7', 'Corner', 'All Lines', 'House', 'Bamboo'];
+let unsubscribeFromAuth = null;
+
 export default function Homepage() {
   const [showHomepage, setHomepageToggle] = useState(true);
   const [container1, setContainer1] = useState(initialValue);
   const [container2, setContainer2] = useState([]);
+  const [openModal, toggleModal] = useState(false);
+
+  const [state, dispatch] = useContext(StoreContext);
+
+  const { currentUser } = state;
 
   const goToTambola = () => {
-    setHomepageToggle(false);
+    toggleModal((prevState) => !prevState);
+    // setHomepageToggle(false);
   };
 
   const moveItemFromContainer1 = (challengeType) => {
@@ -36,8 +53,40 @@ export default function Homepage() {
     setContainer2(tempContainer2);
   };
 
+  useEffect(() => {
+    unsubscribeFromAuth = auth.onAuthStateChanged(async (user) => {
+      toggleModal(false);
+      dispatch({ type: 'CURRENT_USER', payload: user });
+      createUserProfileDocument(user);
+      console.log('user', user);
+      return () => {
+        unsubscribeFromAuth();
+      };
+    });
+  }, []);
+
+  console.log('TCL: Homepage -> currentUser', currentUser);
+
   return (
     <>
+      <Modal open={openModal} onClose={() => toggleModal(false)}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Card>
+            <button type="button" onClick={signInWithGoogle}>
+              Sign In with Google
+            </button>
+            <button type="button" onClick={() => auth.signOut()}>
+              Sign Off
+            </button>
+          </Card>
+        </div>
+      </Modal>
       {showHomepage ? (
         <div className="topContainer">
           <p>Lets play tambola</p>

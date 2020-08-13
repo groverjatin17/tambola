@@ -114,7 +114,6 @@ export default class Tambola extends Component {
     const { challenges } = location.state || {
       challenges: ['Early 7', 'Corner', 'All Lines', 'House', 'Bamboo'],
     };
-    console.log('Tambola -> render -> challenges', challenges);
 
     return (
       <div className="master-container">
