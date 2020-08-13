@@ -19,13 +19,30 @@ export const firestore = firebase.firestore();
 
 export const createUserProfileDocument = async (userAuth, additionalData) => {
   if (!userAuth) return;
-
   console.log(
     'firestore value',
     firestore.collection('users').doc('u0uAirHzzMt4k9fso4zk')
   );
-  // doc('/users/u0uAirHzzMt4k9fso4zk'));
   console.log('firestore not exist ', firestore.doc('/users/vcaaIOOHiuBB77'));
+  const userRef = firestore.doc(`users/${userAuth.uid}`);
+  const userRefSnapshot = await userRef.get();
+
+  if (!userRefSnapshot.exists) {
+    const { displayName, email } = userAuth;
+    const createdAt = new Date();
+    try {
+      await userRef.set({
+        displayName,
+        email,
+        createdAt,
+        ...additionalData,
+      });
+    } catch (error) {
+      console.log('Error Creating user', error.message);
+    }
+  }
+  return userRef;
+>>>>>>> c887c2d69be4cc649cfb773c875087ad4afa8e38
 };
 
 const provider = new firebase.auth.GoogleAuthProvider();
