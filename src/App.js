@@ -3,6 +3,7 @@ import { Router, Route, Switch } from 'react-router-dom';
 
 import History from './components/History';
 import Tambola from './components/Tambola';
+import AdminTambola from './components/AdminTambola';
 import Homepage from './components/Homepage';
 import Register from './components/Register';
 
@@ -22,7 +23,7 @@ function App() {
           <Switch>
             <Route exact path="/" component={Homepage} />
             <Route exact path="/register" component={Register} />
-            <Route exact path="/admin/:gameNumber" component={Tambola} />
+            <Route exact path="/admin/:gameNumber" component={AdminTambola} />
             <Route path="/:id" component={GuestTambola} />
           </Switch>
         </Router>
