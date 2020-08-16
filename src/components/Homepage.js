@@ -1,75 +1,54 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Redirect } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import Modal from '@material-ui/core/Modal';
 import Card from '@material-ui/core/Card';
 import { StoreContext } from '../AppReducer';
-
+import Register from './Register';
+import Login from './Login';
+import SelectPatterns from './SelectPatterns';
 import '../styles/Homepage.css';
-import {
-  createUserProfileDocument,
-  signInWithGoogle,
-  auth,
-} from '../firebase/firebase.utils';
 
-const initialValue = ['Early 7', 'Corner', 'All Lines', 'House', 'Bamboo'];
+import { createUserProfileDocument, auth } from '../firebase/firebase.utils';
+
 let unsubscribeFromAuth = null;
 
 export default function Homepage() {
-  const [showHomepage, setHomepageToggle] = useState(true);
-  const [container1, setContainer1] = useState(initialValue);
-  const [container2, setContainer2] = useState([]);
+  const [gameOn, startGame] = useState(false);
   const [openModal, toggleModal] = useState(false);
+  const [register, setRegistrationFlag] = useState(false);
 
   const [state, dispatch] = useContext(StoreContext);
-
-  const { currentUser } = state;
+  const { selectedPatterns } = state;
 
   const goToTambola = () => {
     toggleModal((prevState) => !prevState);
-    // setHomepageToggle(false);
-  };
-
-  const moveItemFromContainer1 = (challengeType) => {
-    const tempContainer1 = [...container1];
-    const tempContainer2 = [...container2];
-    const itemIndex = tempContainer1.findIndex(
-      (item) => item === challengeType
-    );
-    const selectedItem = tempContainer1.splice(itemIndex, 1);
-    tempContainer2.push(selectedItem);
-    setContainer1(tempContainer1);
-    setContainer2(tempContainer2);
-  };
-
-  const moveItemFromContainer2 = (challengeType) => {
-    const tempContainer1 = [...container1];
-    const tempContainer2 = [...container2];
-    const itemIndex = tempContainer2.findIndex(
-      (item) => item === challengeType
-    );
-    const selectedItem = tempContainer2.splice(itemIndex, 1);
-    tempContainer1.push(selectedItem);
-    setContainer1(tempContainer1);
-    setContainer2(tempContainer2);
+    // startGame(false);
   };
 
   useEffect(() => {
     unsubscribeFromAuth = auth.onAuthStateChanged(async (user) => {
-      toggleModal(false);
       dispatch({ type: 'CURRENT_USER', payload: user });
-      createUserProfileDocument(user);
-      console.log('user', user);
-      return () => {
-        unsubscribeFromAuth();
-      };
+      await createUserProfileDocument(user);
+      if (user) {
+        startGame(true);
+      }
     });
+    return () => {
+      console.log('Unsubscribing in Login');
+      unsubscribeFromAuth();
+    };
   }, []);
-
-  console.log('TCL: Homepage -> currentUser', currentUser);
 
   return (
     <>
-      <Modal open={openModal} onClose={() => toggleModal(false)}>
+      <Modal
+        open={openModal}
+        onClose={() => {
+          console.log('In close Modal function');
+          setRegistrationFlag(false);
+          toggleModal(false);
+        }}
+      >
         <div
           style={{
             display: 'flex',
@@ -77,57 +56,41 @@ export default function Homepage() {
             alignItems: 'center',
           }}
         >
-          <Card>
-            <button type="button" onClick={signInWithGoogle}>
-              Sign In with Google
-            </button>
-            <button type="button" onClick={() => auth.signOut()}>
-              Sign Off
-            </button>
-          </Card>
+          {register ? (
+            <Card>
+              <Register />
+            </Card>
+          ) : (
+            <Card>
+              <Login />
+              <button
+                type="button"
+                onClick={() => {
+                  setRegistrationFlag(true);
+                }}
+              >
+                Register
+              </button>
+            </Card>
+          )}
         </div>
       </Modal>
-      {showHomepage ? (
+      {gameOn ? (
+        <Redirect
+          push
+          to={{
+            pathname: `/admin/${Math.random().toString(36).substring(7)}`,
+            state: { challenges: selectedPatterns },
+          }}
+        />
+      ) : (
         <div className="topContainer">
           <p>Lets play tambola</p>
-          <div className="appContainerStyle">
-            <div className="childContainer">
-              {container1.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className="childElement"
-                  onClick={() => moveItemFromContainer1(item)}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-            <div className="childContainer">
-              {container2.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  className="childElement"
-                  onClick={() => moveItemFromContainer2(item)}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
+          <SelectPatterns />
           <button type="button" onClick={goToTambola}>
             Go to Tambola
           </button>
         </div>
-      ) : (
-        <Redirect
-          push
-          to={{
-            pathname: `/gameon/${Math.random().toString(36).substring(7)}`,
-            state: { challenges: container2 },
-          }}
-        />
       )}
     </>
   );

@@ -4,6 +4,7 @@ import { Router, Route, Switch } from 'react-router-dom';
 import History from './components/History';
 import Tambola from './components/Tambola';
 import Homepage from './components/Homepage';
+import Register from './components/Register';
 
 import './styles/App.css';
 import GuestTambola from './components/GuestTambola';
@@ -18,9 +19,10 @@ function App() {
       <Store>
         <Router history={History}>
           <NavigationBar />
-          <Route exact path="/" component={Homepage} />
           <Switch>
-            <Route exact path="/gameon/:gameNumber" component={Tambola} />
+            <Route exact path="/" component={Homepage} />
+            <Route exact path="/register" component={Register} />
+            <Route exact path="/admin/:gameNumber" component={Tambola} />
             <Route path="/:id" component={GuestTambola} />
           </Switch>
         </Router>
